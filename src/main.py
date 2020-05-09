@@ -1,8 +1,12 @@
 import logging
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+import pandas as pd
+
+import Rewards
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
-                          ConversationHandler)
+                          ConversationHandler,CallbackQueryHandler)
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -11,7 +15,7 @@ logger = logging.getLogger(__name__)
 TOKEN = '1169087544:AAFnHKhcAqQwbWu0WL4A5zHFYwWjwnNssQw'
 
 # Stages
-CREATE, DONE = range(2)
+CREATE, DONE, POINTS = range(3)
 
 
 
@@ -34,7 +38,6 @@ def link(update, context):
         return CREATE
 
 
-
 def reply(update, context):
     user_input = update.message.text
     bot = context.bot
@@ -42,9 +45,29 @@ def reply(update, context):
     bot.send_message(chat_id,text='{} has been linked'.format(user_input)) 
     return ConversationHandler.END
 
+
+def reward(update, context):
+    r = Rewards.Rewards().test()
+    custom_keyboard = []
+    for index, row in r.iterrows():
+        custom_keyboard.append([InlineKeyboardButton(str(row['name'])+" points: "+str(row['points']),callback_data=row['points'])])
+    bot = context.bot
+    chat_id = update.message.chat_id
+    reply_markup = InlineKeyboardMarkup(custom_keyboard)
+    bot.send_message(chat_id=chat_id, 
+                 text="Custom Keyboard Test", 
+                 reply_markup=reply_markup)
+    
+    return POINTS
+
+def points(update, context):
+    query = update.callback_query
+    print(query.data)
+    query.answer()
+    return ConversationHandler.END
+
 def rank(update, context):
     pass
-
 def stop(update,context):
     pass
 
@@ -78,8 +101,19 @@ def main():
 
     dp.add_handler(conv_handler)
 
+    conv_handler2 = ConversationHandler(
+        entry_points=[CommandHandler('reward', reward)],
+
+        states={
+            POINTS : [CallbackQueryHandler(points)]
+        },
+
+        fallbacks=[CommandHandler('reward', reward)]
+    )
+
+    dp.add_handler(conv_handler2)
+
     dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(CommandHandler('reward', reward))
     dp.add_handler(CommandHandler('ranking', rank))
     dp.add_handler(CommandHandler('stop', stop))
     dp.add_handler(CommandHandler('help', help))
