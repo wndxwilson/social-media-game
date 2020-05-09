@@ -87,7 +87,6 @@ def extractTodayPointsFromGS(sheetName, todayHT):
     getSheet = client.open(sheetName).sheet1
     cell = getSheet.find(todayHT) #Find a cell with exact string value
     pointsInDoubleList =str(getSheet.get('B' + str (cell.row))) # It will return a value like [['40']] , so we need to remove [[]] and turn it into integers
-    pointsInSingleList = re.findall(r'\d+', pointsInDoubleList) # ['40']
     pointsLeftRemove = pointsInDoubleList.replace('[[','') #'40']]
     pointsSingleQuote= pointsLeftRemove.replace(']]','') #'40'
     pointsString = pointsSingleQuote.replace("'", "") #40
