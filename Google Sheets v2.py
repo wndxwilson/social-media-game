@@ -46,7 +46,7 @@ appendRowToGS(sheetName, rowOne)
 appendManyRowsToGS(sheetName, rowDF)
 checkUsernameExistInGS('Players','@vhkbewmw')
 updateCellToGS(sheetName,1, 2, "telemedicine_id") #rowIndex = 1, colIndex = 2
-
+updatePlayerPointsToGS('Players', '@vhkbewmw', 50) 
 # With return variables
 
 #GS
@@ -74,7 +74,6 @@ def appendManyRowsToGS(sheetName,rowDF):
     for row in rowLists:
         getSheet.append_row(row)
 
-
 def checkUsernameExistInGS(sheetName, username):
     getSheet = client.open(sheetName).sheet1
     try:
@@ -82,11 +81,16 @@ def checkUsernameExistInGS(sheetName, username):
         return cell
     except:
         return "Username not found"
-        
-def updateCellToGS(sheetName,rowIndex, colIndex, updateValue):
+    
+def updateCellToGS(sheetName,rowIndex, colIndex, updateValue): 
     getSheet = client.open(sheetName).sheet1
     getSheet.update_cell(rowIndex, colIndex, updateValue)
 
+def updatePlayerPointsToGS(sheetName, username, points):
+    getSheet = client.open(sheetName).sheet1
+    cell = getSheet.find(username)
+    getSheet.update_cell(cell.row, cell.col +1 , points)   
+    
 def extractAllDataFromGS(sheetName):
     getSheet = client.open(sheetName).sheet1
     getAllValues= getSheet.get_all_values()
