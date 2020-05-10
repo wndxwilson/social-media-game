@@ -42,9 +42,10 @@ todayHT = 'hallxiitoxic'
 Run variables setting and Functions Calling First
 '''
 # No return variables
-appendRowToGS(rowOne)
-appendManyRowsToGS(rowDF)
-updateCellToGS(1, 2, "telemedicine_id") #rowIndex = 1, colIndex = 2
+appendRowToGS(sheetName, rowOne)
+appendManyRowsToGS(sheetName, rowDF)
+checkUsernameExistInGS('Players','@vhkbewmw')
+updateCellToGS(sheetName,1, 2, "telemedicine_id") #rowIndex = 1, colIndex = 2
 
 # With return variables
 
@@ -63,15 +64,27 @@ allPosts = extractAllPostsFromIG(mainHT, commonHT,allHT)
 # Google Sheets
 # =============================================================================
 
-def appendRowToGS(rowOne): # one row
+def appendRowToGS(sheetName,rowOne): # one row
+    getSheet = client.open(sheetName).sheet1
     getSheet.append_row(rowOne)
 
-def appendManyRowsToGS(rowDF):
+def appendManyRowsToGS(sheetName,rowDF):
+    getSheet = client.open(sheetName).sheet1
     rowLists = rowDF.values.tolist()
     for row in rowLists:
         getSheet.append_row(row)
+
+
+def checkUsernameExistInGS(sheetName, username):
+    getSheet = client.open(sheetName).sheet1
+    try:
+        cell = getSheet.find(username)
+        return cell
+    except:
+        return "Username not found"
         
-def updateCellToGS(rowIndex, colIndex, updateValue):
+def updateCellToGS(sheetName,rowIndex, colIndex, updateValue):
+    getSheet = client.open(sheetName).sheet1
     getSheet.update_cell(rowIndex, colIndex, updateValue)
 
 def extractAllDataFromGS(sheetName):
@@ -86,7 +99,7 @@ def extractAllDataFromGS(sheetName):
 def extractTodayPointsFromGS(sheetName, todayHT):
     getSheet = client.open(sheetName).sheet1
     cell = getSheet.find(todayHT) #Find a cell with exact string value
-    pointsInDoubleList =str(getSheet.get('B' + str (cell.row))) # It will return a value like [['40']] , so we need to remove [[]] and turn it into integers
+    pointsInDoubleList =str(getSheet.get('D' + str (cell.row))) # It will return a value like [['40']] , so we need to remove [[]] and turn it into integers
     pointsLeftRemove = pointsInDoubleList.replace('[[','') #'40']]
     pointsSingleQuote= pointsLeftRemove.replace(']]','') #'40'
     pointsString = pointsSingleQuote.replace("'", "") #40
