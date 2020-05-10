@@ -47,12 +47,14 @@ appendManyRowsToGS(sheetName, rowDF)
 checkUsernameExistInGS('Players','@vhkbewmw')
 updateCellToGS(sheetName,1, 2, "telemedicine_id") #rowIndex = 1, colIndex = 2
 updatePlayerPointsToGS('Players', '@vhkbewmw', 50) 
+updatePlayerNewToCurrentPointsToGS('Players','@ijflikez', 50) 
 
 # With return variables
 
 #GS
 cell_list = findCellLocation(sheetName, searchValue)
 df = extractAllDataFromGS('DailyChallenges')
+points = extractPlayerCurrentPoints('Players','@ijflikez')
 todayChallengeDF = extractTodayChallengeFromGS('Challenges','2020/05/14')
 todayPoints = extractTodayPointsFromGS('DailyChallenges', todayHT)
 
@@ -80,7 +82,6 @@ def appendManyRowsToGS(sheetName,rowDF): #add new players, add todayChallenge to
     for row in rowLists:
         getSheet.append_row(row)
 
-
 def checkUsernameExistInGS(sheetName, username):
     getSheet = client.open(sheetName).sheet1
     try:
@@ -93,10 +94,17 @@ def updateCellToGS(sheetName,rowIndex, colIndex, updateValue):
     getSheet = client.open(sheetName).sheet1
     getSheet.update_cell(rowIndex, colIndex, updateValue)
 
+def updatePlayerNewToCurrentPointsToGS(sheetName, username, newTodayPoints):
+    getSheet = client.open(sheetName).sheet1
+    cell = getSheet.find(username)
+    currentPoints = extractPlayerCurrentPoints (sheetName, username)
+    totalPoints = currentPoints + newTodayPoints
+    getSheet.update_cell(cell.row, cell.col +1 , totalPoints)   
+
 def updatePlayerPointsToGS(sheetName, username, points):
     getSheet = client.open(sheetName).sheet1
     cell = getSheet.find(username)
-    getSheet.update_cell(cell.row, cell.col +1 , points)   
+    getSheet.update_cell(cell.row, cell.col +1 , points)  
     
 def extractAllDataFromGS(sheetName):
     getSheet = client.open(sheetName).sheet1
@@ -106,6 +114,17 @@ def extractAllDataFromGS(sheetName):
     allDF = allDF[1:] # Remove first row as it has become a column header
 
     return allDF
+
+def extractPlayerCurrentPoints(sheetName,username):
+    getSheet = client.open(sheetName).sheet1
+    cell = getSheet.find(username) #Find a cell with exact string value
+    pointsInDoubleList =str(getSheet.get('C' + str (cell.row))) # It will return a value like [['40']] , so we need to remove [[]] and turn it into integers
+    pointsLeftRemove = pointsInDoubleList.replace('[[','') #'40']]
+    pointsSingleQuote= pointsLeftRemove.replace(']]','') #'40'
+    pointsString = pointsSingleQuote.replace("'", "") #40
+    currentPoints = int(pointsString)
+    return currentPoints
+  
 
 def extractTodayChallengeFromGS(sheetName,date):
     getSheet = client.open(sheetName).sheet1
