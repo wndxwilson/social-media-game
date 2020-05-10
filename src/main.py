@@ -1,8 +1,9 @@
 import logging
 
 import pandas as pd
+import time 
 
-import Rewards
+from googletest import*
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
@@ -22,7 +23,7 @@ CREATE, DONE, POINTS = range(3)
 def start(update, context):
     bot = context.bot
     chat_id = update.message.chat_id
-    bot.send_message(chat_id,text='Hi i am xxx_bot')
+    bot.send_message(chat_id,text='Hi i am socail media game bot')
     if(chat_id!=chat_id):
         bot.send_message(chat_id,text='Use /link to link your social media to redeem rewards')
 
@@ -47,7 +48,7 @@ def reply(update, context):
 
 
 def reward(update, context):
-    r = Rewards.Rewards().test()
+    r = extractAllDataFromGS("rewards")
     custom_keyboard = []
     for index, row in r.iterrows():
         custom_keyboard.append([InlineKeyboardButton(str(row['name'])+" points: "+str(row['points']),callback_data=row['points'])])
@@ -63,6 +64,7 @@ def reward(update, context):
 def points(update, context):
     query = update.callback_query
     print(query.data)
+    #deduct points
     query.answer()
     return ConversationHandler.END
 
