@@ -70,11 +70,16 @@ def appendRowToGS(sheetName,rowOne): # one row
     getSheet = client.open(sheetName).sheet1
     getSheet.append_row(rowOne)
 
-def appendManyRowsToGS(sheetName,rowDF):
+def appendManyRowsToGS(sheetName,rowDF): #add new players, add todayChallenge to Challenges by Players    
     getSheet = client.open(sheetName).sheet1
+    
+    colNames = list(rowDF.columns.values)
+    for col in colNames: #Need to change datatype to str
+        rowDF[col] = rowDF[col].astype('str') 
     rowLists = rowDF.values.tolist()
     for row in rowLists:
         getSheet.append_row(row)
+
 
 def checkUsernameExistInGS(sheetName, username):
     getSheet = client.open(sheetName).sheet1
