@@ -20,7 +20,13 @@ class Rankings:
         self.nameList = extractAllDataFromGS("UserInfo")
 
         
-    
+    def display():
+        ranking = "LeaderBoard Rankings\n"
+        for index, row in self.nameList.iterratrow():
+            ranking += row['username']+" : "+row['points']
+            ranking += "\n"
+            
+        
     def displayRankings(self):
         list_of_scores = []
         for x in self.list_of_players:

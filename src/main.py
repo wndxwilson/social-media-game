@@ -2,7 +2,7 @@ import logging
 
 import pandas as pd
 import time 
-
+import datetime as dt
 from googletest import*
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
@@ -13,7 +13,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 #Bot token
-TOKEN = '1169087544:AAFnHKhcAqQwbWu0WL4A5zHFYwWjwnNssQw'
+TOKEN = '1179255354:AAGhVBHGiaJ8b2Xn7C7hoP4J7K3nf351JMA'
 
 # Stages
 CREATE, DONE, POINTS = range(3)
@@ -32,9 +32,9 @@ def link(update, context):
     bot = context.bot
     chat_id = update.message.chat_id
     user = update.message.from_user
-    if(checkUsernameExistInGS("Players", user['username'])):
+    if(checkUsernameExistInGS("Players", chat_id)):
         bot.send_message(chat_id,text='Your social media is linked') 
-        return DONE
+        return ConversationHandler.END
     else:
         update.message.reply_text('Enter your instagram handle')
         return CREATE
@@ -47,14 +47,14 @@ def reply(update, context):
     print(user['username'])
     chat_id = update.message.chat_id
     nameList = extractAllDataFromGS("Players")
-    row = {'name':user['username'],'username':user_input,'points':'0'}
+    row = {'name':chat_id,'username':user_input,'points':'0'}
     nameList = nameList.append(row,ignore_index=True)
     save("Players",nameList)
     bot.send_message(chat_id,text='{} has been linked'.format(user_input)) 
     return ConversationHandler.END
 
 
-def reward(update, context):
+def rewards(update, context):
     r = extractAllDataFromGS("rewards")
     custom_keyboard = []
     for index, row in r.iterrows():
@@ -88,9 +88,34 @@ def mypoints(update, context):
     else:
         update.message.reply_text('Please link your social media')
 
+def dailychallenge(update, context):
+    date = dt.datetime.today().strftime("%Y/%m/%d")
+    user_input = extractTodayChallengeFromGS("Challenges",date)
+    bot = context.bot
+    chat_id = update.message.chat_id
+    text = 'Daily Challenges\n'
+    i = 0
+    for index, row in user_input.iterrows():
+        text += str(i+1)+" : "+row['description']+"\nPoints: "+row['points']
+        text += "\n"+row['hashtags'] +"\n"
+        i += 1
+    bot.send_message(chat_id=chat_id, 
+                 text=text)
 
 def rank(update, context):
-    pass
+    ranking = extractAllDataFromGS("Players").sort_values(by='points', ascending=False)
+    bot = context.bot
+    chat_id = update.message.chat_id
+    i = 0
+    text = ":medal:Rankings\n"
+    for index, row in ranking.iterrows():
+        text += str(i+1)+ "User: "+row['username']+"\n   Points: "+row['points']+"\n"
+        i += 1
+        if(i>30):
+            break
+    bot.send_message(chat_id=chat_id, 
+                 text=text)
+
 def stop(update,context):
     pass
 
@@ -125,22 +150,23 @@ def main():
     dp.add_handler(conv_handler)
 
     conv_handler2 = ConversationHandler(
-        entry_points=[CommandHandler('reward', reward)],
+        entry_points=[CommandHandler('rewards', rewards)],
 
         states={
             POINTS : [CallbackQueryHandler(points)]
         },
 
-        fallbacks=[CommandHandler('reward', reward)]
+        fallbacks=[CommandHandler('rewards', rewards)]
     )
 
     dp.add_handler(conv_handler2)
 
     dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(CommandHandler('ranking', rank))
+    dp.add_handler(CommandHandler('rank', rank))
     dp.add_handler(CommandHandler('stop', stop))
     dp.add_handler(CommandHandler('help', help))
     dp.add_handler(CommandHandler('points', mypoints))
+    dp.add_handler(CommandHandler('dailyChallenge', dailychallenge))
     dp.add_error_handler(error)
 
     # Start the Bot

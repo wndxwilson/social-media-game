@@ -57,7 +57,7 @@ class GameMaster:
 
     def updatepoints(self):
         for index, dc in self.dailychallenge.iterrows():
-             df = extractNewPostsFromIG(dc['Hashtag'])
+            df = extractNewPostsFromIG(dc['Hashtag'])
             for index, row in df.iterrows():
                 if(nameList['username'].str.contains(row['username']))
                     addPoints(self,nameList['username'],nameList['points'])
