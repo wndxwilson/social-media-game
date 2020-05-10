@@ -23,7 +23,7 @@ CREATE, DONE, POINTS = range(3)
 def start(update, context):
     bot = context.bot
     chat_id = update.message.chat_id
-    bot.send_message(chat_id,text='Hi i am socail media game bot')
+    bot.send_message(chat_id,text='Hi i am social media game bot')
     if(chat_id!=chat_id):
         bot.send_message(chat_id,text='Use /link to link your social media to redeem rewards')
 
@@ -31,7 +31,8 @@ def start(update, context):
 def link(update, context):
     bot = context.bot
     chat_id = update.message.chat_id
-    if(chat_id != chat_id):
+    user = update.message.from_user
+    if(checkUsernameExistInGS("Players", user['username'])):
         bot.send_message(chat_id,text='Your social media is linked') 
         return DONE
     else:
@@ -41,8 +42,14 @@ def link(update, context):
 
 def reply(update, context):
     user_input = update.message.text
+    user = update.message.from_user
     bot = context.bot
+    print(user['username'])
     chat_id = update.message.chat_id
+    nameList = extractAllDataFromGS("Players")
+    row = {'name':user['username'],'username':user_input,'points':'0'}
+    nameList = nameList.append(row,ignore_index=True)
+    save("Players",nameList)
     bot.send_message(chat_id,text='{} has been linked'.format(user_input)) 
     return ConversationHandler.END
 
@@ -63,10 +70,24 @@ def reward(update, context):
 
 def points(update, context):
     query = update.callback_query
-    print(query.data)
-    #deduct points
+    user = update.callback_query.from_user
+    bot = context.bot
+    if(checkUsernameExistInGS("Players", user['username'])):
+        point = extractTodayPointsFromGS("Players", user['username'])
+        result = point-int(query.data)
+        if(result>0):
+            updatePlayerPointsToGS("Players",user['username'],result)
     query.answer()
     return ConversationHandler.END
+
+def mypoints(update, context):
+    user = update.message.from_user
+    if(checkUsernameExistInGS("Players", user['username'])):
+        point = extractTodayPointsFromGS("Players", user['username'])
+        update.message.reply_text('you have {} points'.format(point))
+    else:
+        update.message.reply_text('Please link your social media')
+
 
 def rank(update, context):
     pass
@@ -119,7 +140,7 @@ def main():
     dp.add_handler(CommandHandler('ranking', rank))
     dp.add_handler(CommandHandler('stop', stop))
     dp.add_handler(CommandHandler('help', help))
-
+    dp.add_handler(CommandHandler('points', mypoints))
     dp.add_error_handler(error)
 
     # Start the Bot
