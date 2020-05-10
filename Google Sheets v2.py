@@ -47,11 +47,13 @@ appendManyRowsToGS(sheetName, rowDF)
 checkUsernameExistInGS('Players','@vhkbewmw')
 updateCellToGS(sheetName,1, 2, "telemedicine_id") #rowIndex = 1, colIndex = 2
 updatePlayerPointsToGS('Players', '@vhkbewmw', 50) 
+
 # With return variables
 
 #GS
 cell_list = findCellLocation(sheetName, searchValue)
 df = extractAllDataFromGS('DailyChallenges')
+todayChallengeDF = extractTodayChallengeFromGS('Challenges','2020/05/14')
 todayPoints = extractTodayPointsFromGS('DailyChallenges', todayHT)
 
 #IG
@@ -99,6 +101,16 @@ def extractAllDataFromGS(sheetName):
     allDF = allDF[1:] # Remove first row as it has become a column header
 
     return allDF
+
+def extractTodayChallengeFromGS(sheetName,date):
+    getSheet = client.open(sheetName).sheet1
+    cell = getSheet.find(date)
+    listChallenge = getSheet.row_values(cell.row)
+    df = pd.DataFrame(listChallenge)
+    df= df.T #transpose
+    df =df.rename(columns={0: "username", 1: "description", 2: "hashtags", 3: "points", 4: "date"})
+    
+    return df
 
 def extractTodayPointsFromGS(sheetName, todayHT):
     getSheet = client.open(sheetName).sheet1
